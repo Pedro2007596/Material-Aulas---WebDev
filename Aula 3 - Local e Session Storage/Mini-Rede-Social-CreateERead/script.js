@@ -21,18 +21,43 @@ let posts = [
 
 
 // Inicialização
-window.onload = function() {
+window.onload = function(infosDoEvento) {
+    carregarLocalStorage();
     displayPosts();
 
     document.getElementById('postForm').addEventListener('submit', addPost); 
+    document.querySelector('#postList').addEventListener('click', handleClick);
 };
+function salvarLocalStorage(){
+    localStorage.setItem("posts", JSON.stringify(posts))
+}
+
+function carregarLocalStorage(){
+    const postsGuardados = localStorage.getItem("posts")
+
+    if(postsGuardados){
+        posts = JSON.parse(postsGuardados)
+    }
+}
+
+function handleClick(infosDoEvento){
+    const action = infosDoEvento.target.dataset.action;
+    const index = infosDoEvento.target.dataset.index;
+    
+    if(action === "Editar"){
+        editarPost(index)
+    }
+    else if(action === "Apagar"){
+        apagarPost(index)
+    }
+}
 
 // Função para exibir os posts
 function displayPosts() {
     const postList = document.getElementById('postList');
     postList.innerHTML = '';
 
-    posts.forEach(pegaPost => {
+    posts.forEach((pegaPost, index) => {
             const postElement = document.createElement('div');
             postElement.classList.add('card-post');
   
@@ -41,8 +66,8 @@ function displayPosts() {
                 ${pegaPost.image ? `<img src="${pegaPost.image}" alt="Imagem do post" style="max-width:150px;">` : ""}
                 <p><em>Categoria: ${pegaPost.category}</em></p>
                 <p><em>Data e Hora: ${pegaPost.date}</em></p>
-                <button><i class="fa-solid fa-pen-to-square"></i> Editar</button>
-                <button><i class="fa-solid fa-eraser"></i> Apagar</button>
+                <button data-action="Editar" data-index=${index}><i class="fa-solid fa-pen-to-square"></i> Editar</button>
+                <button data-action="Apagar" data-index=${index}><i class="fa-solid fa-eraser"></i> Apagar</button>
                 <hr style="margin:30px;">`;
                
             postList.append(postElement);
@@ -50,8 +75,8 @@ function displayPosts() {
 }
 
 // Função para adicionar um novo post
-function addPost(event) {
-    event.preventDefault();
+function addPost(infosDoEvento) {
+    infosDoEvento.preventDefault();
     
     const postText = document.getElementById('postText').value;
     const postCategory = document.getElementById('postCategory').value;
@@ -66,8 +91,26 @@ function addPost(event) {
     };
     
     posts.unshift(post);
+    salvarLocalStorage();
     
     document.getElementById('postForm').reset();
     
     displayPosts();
+}
+
+//UPDATE
+function editarPost(index){
+    const novotexto = prompt("Edite aqui o seu post",posts[index].text)
+    posts[index].text = novotexto
+    salvarLocalStorage();
+    displayPosts()
+}
+//DELETE
+function apagarPost(index){
+    const confirmar = confirm("Você realmente deseja excluir o post ?")
+    if(confirmar){
+        posts.splice(index, 1)
+    }
+    salvarLocalStorage();
+    displayPosts()
 }
